@@ -5,6 +5,8 @@ from io import BytesIO
 
 import Milter
 
+from concurrent_merkle import ConcurrentMerkle
+
 
 class BlockchainMilter(Milter.Base):
 
@@ -12,6 +14,9 @@ class BlockchainMilter(Milter.Base):
         self.id = Milter.uniqueID()
         self.rgx = re.compile('[^a-zA-Z]')
         self.relevant_headers = ["To", "From", "Subject"]
+        self.blockchain_merkle = ConcurrentMerkle()
+        self.blockchain_merkle.start_running()
+
 
     def _new_message(self):
         self.headers = {}
