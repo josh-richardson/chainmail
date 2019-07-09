@@ -8,6 +8,7 @@ import Milter
 
 from arweave_adder import ArweaveAdder
 from concurrent_merkle import ConcurrentMerkle
+from send_mail import send_email
 
 
 class BlockchainMilter(Milter.Base):
@@ -36,18 +37,20 @@ class BlockchainMilter(Milter.Base):
         self.msg_body.seek(0)
         msg = self.msg_body.read().decode("utf-8")
         total_string = json.dumps({"message": msg, "headers": self.headers})
-        print(f"Message to hash: {total_string}")
 
-        proof = self.blockchain_merkle.add(hashlib.sha256(total_string.encode("utf-8")).digest(),
-                                           self.blockchain_merkle.merkle)
+        proof = self.blockchain_merkle.add(hashlib.sha256(total_string.encode("utf-8")).digest(), self.blockchain_merkle.merkle)
         proof_result = proof.result()
 
         tx = self.blockchain_merkle.get_tx()
         tx_result = tx.result()
 
-        return_proof = json.dumps({"tx": tx_result, "proof": proof_result})
-        print(return_proof)
+        email_proof = {"tx": tx_result, "merkle_proof": proof_result}
 
+        emails = re.findall(r'[\w.-]+@[\w.-]+', self.headers['to'])
+        emails.extend(re.findall(r'[\w.-]+@[\w.-]+', self.headers['from']))
+
+        for email in set(emails):
+            send_email(email, self.headers['subject'], 'http://arweave-app-url.com/', json.dumps({'proof': email_proof, 'data': {"message": msg, "headers": self.headers}}))
         return Milter.ACCEPT
 
     @Milter.noreply
@@ -64,3 +67,5 @@ if __name__ == "__main__":
     timeout = 20000
     Milter.factory = BlockchainMilter
     Milter.runmilter("BaseMilter", socketname, timeout)
+
+

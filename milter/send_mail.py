@@ -24,4 +24,4 @@ def send_email(to, subject, url, proof):
         print(response.body)
         print(response.headers)
     except Exception as e:
-        print(e.message)
+        print(e)
