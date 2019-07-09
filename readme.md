@@ -11,6 +11,10 @@ Chainmail uses the Arweave blockchain in order to prove the content of emails pa
 
 Yes! Send an email to a friend and cc `admin@chainmail.pw`. You and the friend should receive an additional email within a few minutes which contains a proof, and a link to verify that proof. Copy the proof to your clipboard, and open the link. Then paste the proof into the textbox, and click verify. If the proof is valid and has been mined (this may take up to 10 minutes!!), the application should show you a success screen with details and more information. 
 
+### Can I run a mail server?
+
+Yes! Unfortunately I haven't yet had time to dockerize this, but you'll need a domain, and an appropriate MX record. Then you'll need to set up Postfix to receive inbound mail. You'll also need to configure Postfix to use the milter in the `milter` directory. See the scripts there for some help. Once this is all done, you'll need some Arweave tokens to deploy to the Arweave blockchain, and a SendGrid account to send out proofs. You could also configure Postfix to send out proofs, but getting emails to reliably hit the inbox on big mail providers is not a trivial task, so SendGrid is an easier option.
+
 ### Decentralization:
 
 The verifier web application is deployed on the Arweave blockchain, and proofs are also stored on the Arweave blockchain. However, proofs are generated from emails which are received using a centralised mail server. I'm not aware of any easy fix for this problem, whilst still retaining interoperability with email.
