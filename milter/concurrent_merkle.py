@@ -35,7 +35,7 @@ class ConcurrentMerkle:
             time.sleep(5)
             self.merkle.process()
             root_hash = str(self.merkle.levels[-1][0])
-            if root_hash != "720b3658b4bf68dc1b8ed2acc5ad2b4a59aa0149872aae7bc4660e5915f4f699":
+            if root_hash != "5b34ffae04f55299b2d71f580b3bf392a4ef6ffd047de6bfc4c7d44d495a015f":
                 self.current_tx = self.arweave_adder.add_blockchain(root_hash)
             self.merkle = MerkleTree()
 
