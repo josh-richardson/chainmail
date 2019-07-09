@@ -36,7 +36,8 @@ class BlockchainMilter(Milter.Base):
     def eom(self):
         self.msg_body.seek(0)
         msg = self.msg_body.read().decode("utf-8")
-        total_string = json.dumps({"message": msg, "headers": self.headers})
+        total_string = json.dumps({"message": msg, "headers": self.headers}, separators=(',', ':'))
+        print(total_string)
 
         proof = self.blockchain_merkle.add(hashlib.sha256(total_string.encode("utf-8")).digest(), self.blockchain_merkle.merkle)
         proof_result = proof.result()

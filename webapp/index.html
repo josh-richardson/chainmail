@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <link rel="stylesheet" href="/css/styles.css">
     <script src="/js/sha256.min.js"></script>
+    <script src="https://unpkg.com/arweave/bundles/web.bundle.js"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"
@@ -41,12 +42,52 @@
             <a id="verify-button" class="btn-large waves-effect waves-light blue darken-3">Verify Proof</a>
         </div>
         <br><br>
+        <!-- Modal Structure -->
+        <div id="modal1" class="modal">
+            <div class="modal-content">
+                <h4>Email Proof Validated!</h4>
+                <p>Your email proof has been validated on the Arweave blockchain. The verified data is below:</p>
+
+                <p>The email was confirmed at block: <span id="confirmed-block"></span></p>
+
+                <p class="verif-tt">Verified headers:</p>
+                <pre id="verified-headers" class="code-container"></pre>
+
+
+                <p class="verif-tt">Verified body:</p>
+                <pre id="verified-body" class="code-container"></pre>
+
+
+                <p><span class="bold red-text darken-1">However</span>, you still need to be vigilant! You must check
+                    that the information proven
+                    here (the email body, title, sender, and receiver) are the same as the email which you actually
+                    received in your email client. <span class="bold red-text darken-1">Without doing this, this proof is meaningless</span>.
+                    Support for automating this process is coming soon via a browser extension!</p>
+            </div>
+            <div class="modal-footer">
+                <a href="#!" class="modal-close waves-effect waves-green btn-flat">Agree</a>
+            </div>
+        </div>
 
     </div>
 </div>
 
 
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var elems = document.querySelectorAll('.modal');
+        M.Modal.init(elems);
+    });
+
+    function objToString(obj) {
+        let str = '';
+        for (const p in obj) {
+            if (obj.hasOwnProperty(p)) {
+                str += p + ': ' + obj[p] + '\n';
+            }
+        }
+        return str;
+    }
 
     function toHexString(byteArray) {
         return Array.prototype.map.call(byteArray, function (byte) {
@@ -65,7 +106,6 @@
 
 
     function verifyMerkleProof(proof) {
-        console.log(proof);
         const messageHash = proof[0];
         const merkleRoot = proof[proof.length - 1];
         const proofItems = proof.slice(1, proof.length - 1);
@@ -83,17 +123,65 @@
     }
 
 
-
-
     $('#verify-button').click(function () {
-        var textProof = $('#proof-text').val();
+        const textProof = $('#proof-text').val();
 
-        var objectProof = JSON.parse(textProof);
+        const objectProof = JSON.parse(textProof);
+        const merkleProof = objectProof.proof.merkle_proof;
 
-        var merkleProof = objectProof.proof.merkle_proof;
+
+        const allegedMessageHash = merkleProof[0];
+        const allegedMerkleRoot = merkleProof[merkleProof.length - 1];
+        const emailData = objectProof.data;
+
+        var hash = sha256.create();
+        hash.update(JSON.stringify(emailData));
 
 
-        console.log(verifyMerkleProof(merkleProof));
+        if (hash.hex() === allegedMessageHash && verifyMerkleProof(merkleProof)) {
+            var transactionId = objectProof.proof.tx;
+
+
+            const arweave = Arweave.init({
+                host: (window.location.host.indexOf("localhost") !== -1 ? 'arweave.net' : window.location.host),
+                port: 443,
+                protocol: 'https'
+            });
+
+
+            arweave.transactions.getStatus(transactionId).then(status => {
+                console.log(status);
+
+                if (status.confirmed.block_height !== undefined) {
+                    arweave.transactions.get(transactionId).then(transaction => {
+                        if (transaction.get('data', {decode: true, string: true}) === allegedMerkleRoot) {
+
+                            $('#confirmed-block').text(status.confirmed.block_height);
+
+                            $('#verified-headers').text(objToString(emailData.headers));
+
+                            $('#verified-body').text(emailData.message);
+
+
+                            M.Modal.getInstance(document.querySelectorAll('.modal').item(0)).open();
+                        } else {
+                            alert('Email proof was valid, but not found on the Arweave blockchain!')
+                        }
+                    });
+                } else {
+                    alert('Email proof was valid, but not yet confirmed on the Arweave blockchain!')
+                }
+
+
+            });
+
+
+        } else {
+            alert('Email proof was invalid: either the email hash was invalid, or could not trace a path between the email hash and merkle root. If you\'re seeing this, the proof has failed permanently.');
+
+        }
+
+
     });
 </script>
 
