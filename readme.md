@@ -31,6 +31,12 @@ Might productize this and add support for multiple backends.
 
 Separately, I noticed that a lot of deployed Arweave apps use arweave.net to initialise the Arweave JS API. I've avoided this as it would seem to break the decentralized aspect of the app.
 
+### Libraries used:
+
+The milter application uses pymilter (https://github.com/sdgathman/pymilter) and sendgrid (https://github.com/sendgrid/sendgrid-python)
+
+The frontend uses jQuery (https://jquery.com/), Materliaze (https://materializecss.com/), and sha256.js (https://github.com/emn178/js-sha256)
+
 ### Video demo:
 
 Coming soon :)
