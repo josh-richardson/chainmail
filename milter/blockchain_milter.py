@@ -51,7 +51,7 @@ class BlockchainMilter(Milter.Base):
         emails.extend(re.findall(r'[\w.-]+@[\w.-]+', self.headers['from']))
 
         for email in set(emails):
-            send_email(email, self.headers['subject'], 'https://arweave.net/QNpy9Y1Zairzo1KTIxLgGOlPYaTXYLLh3faz21r4VZU', json.dumps({'proof': email_proof, 'data': {"message": msg, "headers": self.headers}}))
+            send_email(email, self.headers['subject'], 'https://arweave.net/ry4wJcgNN0-yF50a7VNwN9ve56ZFLAJHwd9CP-ooYbQ', json.dumps({'proof': email_proof, 'data': {"message": msg, "headers": self.headers}}))
         return Milter.ACCEPT
 
     @Milter.noreply
