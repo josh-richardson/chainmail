@@ -152,7 +152,7 @@
             arweave.transactions.getStatus(transactionId).then(status => {
                 console.log(status);
 
-                if (status.confirmed.block_height !== undefined) {
+                if (status.confirmed && status.confirmed.block_height) {
                     arweave.transactions.get(transactionId).then(transaction => {
                         if (transaction.get('data', {decode: true, string: true}) === allegedMerkleRoot) {
 
@@ -169,7 +169,7 @@
                         }
                     });
                 } else {
-                    alert('Email proof was valid, but not yet confirmed on the Arweave blockchain!')
+                    alert('Email proof was valid, but not yet confirmed on the Arweave blockchain! Please wait ~10 minutes!')
                 }
 
 
