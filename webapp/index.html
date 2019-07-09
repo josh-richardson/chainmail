@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chainmail Blockchain Verifier</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="/js/sha256.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<nav class="blue darken-3" role="navigation">
+    <div class="nav-wrapper container"><a id="logo-container" href="#" class="brand-logo">Chainmail</a>
+        <ul class="right hide-on-med-and-down">
+            <li><a href="#">Verify</a></li>
+        </ul>
+
+        <ul id="nav-mobile" class="sidenav">
+            <li><a href="#">Verify</a></li>
+        </ul>
+        <a href="#" data-target="nav-mobile" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+    </div>
+</nav>
+<div class="section no-pad-bot" id="index-banner">
+    <div class="container">
+        <br><br>
+        <h1 class="header center">Chainmail Verifier Application</h1>
+        <div class="row center">
+            <h5 class="header col s12 light">Paste your proof into the field below, and click the verify button!</h5>
+        </div>
+
+        <div class="row center">
+            <div class="input-field col s12">
+                <textarea id="proof-text" class="materialize-textarea"></textarea>
+                <label for="proof-text">Email Proof</label>
+            </div>
+            <a id="verify-button" class="btn-large waves-effect waves-light blue darken-3">Verify Proof</a>
+        </div>
+        <br><br>
+
+    </div>
+</div>
+
+
+<script>
+
+    function toHexString(byteArray) {
+        return Array.prototype.map.call(byteArray, function (byte) {
+            return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+        }).join('');
+    }
+
+    function toByteArray(hexString) {
+        var result = [];
+        while (hexString.length >= 2) {
+            result.push(parseInt(hexString.substring(0, 2), 16));
+            hexString = hexString.substring(2, hexString.length);
+        }
+        return result;
+    }
+
+
+    function verifyMerkleProof(proof) {
+        console.log(proof);
+        const messageHash = proof[0];
+        const merkleRoot = proof[proof.length - 1];
+        const proofItems = proof.slice(1, proof.length - 1);
+
+        let currentHash = toByteArray(messageHash);
+
+        proofItems.forEach(x => {
+            if (x.left !== undefined) {
+                currentHash = sha256.array(toByteArray(x.left).concat(currentHash));
+            } else {
+                currentHash = sha256.array(currentHash.concat(toByteArray(x.right)));
+            }
+        });
+        return toHexString(currentHash) === merkleRoot;
+    }
+
+
+
+
+    $('#verify-button').click(function () {
+        var textProof = $('#proof-text').val();
+
+        var objectProof = JSON.parse(textProof);
+
+        var merkleProof = objectProof.proof.merkle_proof;
+
+
+        console.log(verifyMerkleProof(merkleProof));
+    });
+</script>
+
+</body>
+</html>
